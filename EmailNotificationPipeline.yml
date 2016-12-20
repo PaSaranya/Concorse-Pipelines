@@ -1,0 +1,39 @@
+resources:
+  - name: email-resource-source
+    type: git
+    source:
+      uri: https://github.com/pivotal-cf/email-resource
+      branch: master
+  - name: send-an-email
+    type: email
+    source:
+      smtp:
+        host: smtp.gmail.com
+        port: "587"
+        username: rajnishpandey9840954067@gmail.com
+        password: 144025036146@Ohm
+      from: rajnishpandey9840954067@gmail.com
+      to:  ["rajnishpandey9840954067@gmail.com"]
+
+resource_types:
+  - name: email
+    type: docker-image
+    source:
+      repository: pcfseceng/email-resource
+
+jobs:
+  - name: demo-email-Notification
+    plan:
+      - get: email-resource-source
+        trigger: false
+      - task: demo-prep-sha-email
+        file: email-resource-source/ci/demo-prep-sha-email.yml
+        config:
+          params:
+            file_to_hash: email-resource-source/Dockerfile
+            output_subject_file: generated-subject
+            output_body_file: generated-body
+      - put: send-an-email
+        params:
+          subject: email-out/generated-subject
+          body: email-out/generated-body

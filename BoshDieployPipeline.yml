@@ -1,0 +1,44 @@
+---
+jobs:
+- name: BOSH-deploy
+  public: true
+  serial: true
+  plan:
+  - aggregate:
+    - get: resource-bosh-stemcell
+    - get: resource-bosh-release-redis
+    - get: resource-manifest
+  - put: resource-redis-bosh-deployment
+    params:
+      manifest: resource-manifest/manifest.yml
+      releases:
+        - resource-bosh-release-redis/*.tgz
+      stemcells:
+        - resource-bosh-stemcell/*.tgz
+resources:
+- name: resource-manifest
+  type: git
+  source:
+    uri: https://github.com/rajnishpandey/simpleWebApp.git
+    # uri: https://gist.github.com/3ff87c465d483543c53d.git # AWS example
+
+- name: resource-bosh-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-aws-xen-ubuntu-trusty-go_agent
+
+- name: resource-bosh-release-redis
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-community/redis-boshrelease
+
+- name: resource-redis-bosh-deployment
+  type: bosh-deployment
+  source:
+    target: https://52.74.167.235:25555
+    username: test
+    password: admin
+    deployment: redis # from the manifest.yml in resource-manifest
+    ignore_ssl: true
+    security_groups:
+        - redis
